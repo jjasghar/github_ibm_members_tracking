@@ -4,9 +4,8 @@ import os
 from github import Auth
 
 
-def get_member_numbers():
+def get_member_numbers(organization):
     token = os.getenv("GH_TOKEN")
-    organization = "ibm"
     # using an access token
     auth = Auth.Token(token)
     # Public Web Github
@@ -24,4 +23,4 @@ def get_member_numbers():
 
 
 if __name__ == "__main__":
-    get_member_numbers()
+    get_member_numbers('ibm')

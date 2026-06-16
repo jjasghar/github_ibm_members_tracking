@@ -12,7 +12,7 @@ Currently tracking member counts for:
 - **ibm-granite** - IBM Granite organization
 - **ibm-granite-community** - IBM Granite Community organization
 - **ds4sd** - Deep Search for Scientific Discovery organization
-- **ibm-aiu** - IBM AI organization
+- **ibm-aiu** - IBM AI
 
 ## Features
 

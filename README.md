@@ -1,26 +1,36 @@
 # IBM GitHub Members Tracking
 
-## Scope
+Tracks **aggregate** membership counts across GitHub organizations you own, discovers those orgs each run, and publishes charts to GitHub Pages.
 
-This repository tracks membership statistics across GitHub organizations you **own**, discovers them daily from your GitHub memberships, and publishes charts to GitHub Pages.
+## Privacy / what is stored
+
+This repo does **not** collect or store personal information about org members.
+
+| Stored | Not stored |
+|--------|------------|
+| Organization login (e.g. `IBM`) | Member names, usernames, or emails |
+| Date (`YYYY-MM-DD`) | Avatars, profiles, or roles |
+| Total member **count** for that org that day | Tokens, PATs, or credentials |
+
+`ibm_stats.csv` is only `Date,Organization,Members`. Charts are generated from those totals. The `GH_TOKEN` used by Actions lives in a GitHub Actions secret and is never committed.
 
 ## How organizations are chosen
 
-Each run calls the GitHub API (`/user/memberships/orgs`) and tracks every org where you are an active **owner/admin**, excluding personal/noise orgs and `ibm-granite`.
+Each run calls the GitHub API (`/user/memberships/orgs`) and tracks every org where you are an active **owner/admin**, excluding a small skip list of personal/noise orgs and `ibm-granite`.
 
-The discovery logic mirrors [`list_github_orgs.py`](https://github.ibm.com/open-source/open-source-project-tracker) (`--owners-only`).
+Discovery mirrors [`list_github_orgs.py`](https://github.ibm.com/open-source/open-source-project-tracker) (`--owners-only`).
 
 ## Features
 
 - **Daily discovery + collection**: owned orgs are resolved every run, then member counts are recorded
-- **CSV storage**: long-format `ibm_stats.csv` (`Date,Organization,Members`) so the org set can grow/shrink
+- **CSV storage**: long-format `ibm_stats.csv` so the org set can grow/shrink
 - **Per-org charts**: interactive Plotly HTML for each tracked organization
 - **Dashboard**: `charts/index.html` with search/filter across all orgs
-- **GitHub Actions**: automated daily update + commit back to `main` for Pages
+- **GitHub Actions**: daily at **6:00 AM UTC**, then commits updates back to `main` for Pages
 
 ## Usage
 
-### Manual Execution
+### Manual execution
 
 ```bash
 git clone https://github.com/jjasghar/github_ibm_members_tracking
@@ -33,23 +43,50 @@ python generate_charts.py
 open charts/index.html
 ```
 
-### Automated Daily Execution
+### Automated daily execution
 
-The GitHub Action:
+Workflow: [`.github/workflows/daily-stats.yml`](.github/workflows/daily-stats.yml)
+
 1. Discovers owned organizations
-2. Collects member counts into `ibm_stats.csv`
+2. Appends today’s member counts to `ibm_stats.csv`
 3. Regenerates charts + dashboard
-4. Commits changes back to the repository
+4. Commits and pushes changes to `main`
 
-**Setup Requirements for GitHub Actions:**
-- Add a `GH_TOKEN` secret (PAT with `read:org`)
-- Go to Settings → Secrets and variables → Actions → New repository secret
-- **SAML SSO**: For IBM orgs with SSO, open https://github.com/settings/tokens → **Configure SSO** and authorize each org the token must read
-- Scheduled workflows auto-disable after ~60 days with no human commits; re-enable under the Actions tab if they stop
+**Required setup**
 
-## License & Authors
+1. Add a repo secret named `GH_TOKEN` (PAT with `read:org`)  
+   Settings → Secrets and variables → Actions → New repository secret
+2. **SAML SSO**: for IBM orgs, open [token settings](https://github.com/settings/tokens) → **Configure SSO** and authorize each org the token must read
+3. Confirm the workflow is **enabled** under the Actions tab (GitHub can auto-disable scheduled workflows after ~60 days with no human activity)
 
-If you would like to see the detailed LICENSE click [here](./LICENSE).
+You can also trigger it manually: Actions → *Daily IBM GitHub Stats Collection and Chart Generation* → Run workflow.
+
+## Data structure
+
+| Column | Description |
+|--------|-------------|
+| Date | Collection date (`YYYY-MM-DD`) |
+| Organization | GitHub org login |
+| Members | Member count that day |
+
+Legacy wide-format CSV rows are migrated automatically on the next collection run (`ibm-granite` is dropped).
+
+## Generated charts
+
+- **Individual**: `{org}_members_trend.html` for every tracked org
+- **Combined**: top orgs + remaining orgs overview
+- **Ranking**: current membership bar chart across all orgs
+- **Dashboard**: [`charts/index.html`](charts/index.html) with filterable links
+
+## Current status
+
+- **Tracking**: owned GitHub organizations (discovered each run)
+- **Dashboard**: [jjasghar.github.io/github_ibm_members_tracking/charts/](https://jjasghar.github.io/github_ibm_members_tracking/charts/)
+- **Schedule**: daily at 6:00 AM UTC via GitHub Actions
+
+## License & authors
+
+See [LICENSE](./LICENSE).
 
 - Author: JJ Asghar <awesome@ibm.com>
 
@@ -58,34 +95,3 @@ Copyright:: 2024- IBM, Inc
 
 Licensed under the Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
 ```
-
-## Data Structure
-
-`ibm_stats.csv` uses long format:
-
-| Column | Description |
-|--------|-------------|
-| Date | Collection date (`YYYY-MM-DD`) |
-| Organization | GitHub org login |
-| Members | Member count that day |
-
-Historical wide-format rows are migrated automatically on the next collection run (and `ibm-granite` is dropped).
-
-## Generated Charts
-
-- **Individual**: `{org}_members_trend.html` for every tracked org
-- **Combined**: top orgs + remaining orgs overview
-- **Ranking**: current membership bar chart across all orgs
-- **Dashboard**: [`charts/index.html`](charts/index.html) with filterable links
-
-## Current Status
-
-📊 **Active Tracking**: owned IBM GitHub organizations (discovered daily)  
-📈 **Dashboard**: [jjasghar.github.io/github_ibm_members_tracking/charts/](https://jjasghar.github.io/github_ibm_members_tracking/charts/)  
-🔄 **Automation**: daily at 6:00 AM UTC via GitHub Actions  
-
-## Quick Start
-
-1. **View Charts**: open `charts/index.html` or the Pages URL above
-2. **Run Locally**: follow the manual execution steps
-3. **Automate**: set `GH_TOKEN` (with SSO authorizations) as a repo secret

@@ -14,12 +14,6 @@ This repo does **not** collect or store personal information about org members.
 
 `ibm_stats.csv` is only `Date,Organization,Members`. Charts are generated from those totals. The `GH_TOKEN` used by Actions lives in a GitHub Actions secret and is never committed.
 
-## How organizations are chosen
-
-Each run calls the GitHub API (`/user/memberships/orgs`) and tracks every org where you are an active **owner/admin**, excluding a small skip list of personal/noise orgs and `ibm-granite`.
-
-Discovery mirrors [`list_github_orgs.py`](https://github.ibm.com/open-source/open-source-project-tracker) (`--owners-only`).
-
 ## Features
 
 - **Daily discovery + collection**: owned orgs are resolved every run, then member counts are recorded

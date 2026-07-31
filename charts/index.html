@@ -27,62 +27,7 @@
         .subtitle {
             text-align: center;
             color: #666;
-            margin-bottom: 30px;
-        }
-        .chart-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 20px;
-            margin-top: 30px;
-        }
-        .chart-card {
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            padding: 20px;
-            background-color: #fafafa;
-            transition: transform 0.2s, box-shadow 0.2s;
-        }
-        .chart-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-        }
-        .chart-card h3 {
-            margin-top: 0;
-            color: #333;
-        }
-        .chart-card a {
-            color: #0066cc;
-            text-decoration: none;
-            font-weight: bold;
-        }
-        .chart-card a:hover {
-            text-decoration: underline;
-        }
-        .featured-charts {
-            margin-bottom: 40px;
-        }
-        .featured-chart {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 25px;
-            border-radius: 10px;
             margin-bottom: 20px;
-        }
-        .featured-chart h3 {
-            margin-top: 0;
-            color: white;
-        }
-        .featured-chart a {
-            color: #fff;
-            background-color: rgba(255,255,255,0.2);
-            padding: 10px 20px;
-            border-radius: 5px;
-            display: inline-block;
-            margin-top: 10px;
-        }
-        .featured-chart a:hover {
-            background-color: rgba(255,255,255,0.3);
-            text-decoration: none;
         }
         .stats {
             background-color: #e8f4f8;
@@ -90,82 +35,486 @@
             border-radius: 5px;
             margin-bottom: 20px;
         }
+        .filter {
+            width: 100%;
+            box-sizing: border-box;
+            padding: 12px 14px;
+            margin: 10px 0 24px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            font-size: 16px;
+        }
+        .chart-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 16px;
+        }
+        .chart-card {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 16px;
+            background-color: #fafafa;
+        }
+        .chart-card.hidden { display: none; }
+        .chart-card h3 { margin-top: 0; color: #333; word-break: break-word; }
+        .chart-card a { color: #0066cc; text-decoration: none; font-weight: bold; }
+        .featured-chart {
+            background: linear-gradient(135deg, #1f4e79 0%, #2d6a9f 100%);
+            color: white;
+            padding: 22px;
+            border-radius: 10px;
+            margin-bottom: 16px;
+        }
+        .featured-chart h3 { margin-top: 0; color: white; }
+        .featured-chart a {
+            color: #fff;
+            background-color: rgba(255,255,255,0.2);
+            padding: 10px 20px;
+            border-radius: 5px;
+            display: inline-block;
+            margin-top: 10px;
+            text-decoration: none;
+        }
+        code {
+            background: #eee;
+            padding: 1px 5px;
+            border-radius: 4px;
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>IBM GitHub Members Tracking</h1>
-        <p class="subtitle">Interactive charts showing membership trends across IBM GitHub organizations</p>
-        <p class="subtitle">Last updated: 2026-02-09 06:26:17 UTC</p>
-        
-        <div class="stats">
-            <strong>Tracking 7 IBM GitHub organizations</strong> with daily membership data collection and visualization.
-        </div>
-        
-        <div class="featured-charts">
-            <div class="featured-chart">
-                <h3>📊 Combined Overview</h3>
-                <p>View all IBM GitHub organizations in a single comprehensive chart with detailed breakdowns.</p>
-                <a href="combined_members_trend.html">View Combined Chart →</a>
-            </div>
-            
-            <div class="featured-chart">
-                <h3>📈 Summary Statistics</h3>
-                <p>Compare current, maximum, minimum, and average member counts across all organizations.</p>
-                <a href="summary_statistics.html">View Summary Stats →</a>
-            </div>
-        </div>
-        
-        <h2>Individual Organization Charts</h2>
-        <div class="chart-grid">
+        <p class="subtitle">Membership trends across owned IBM GitHub organizations</p>
+        <p class="subtitle">Last updated: 2026-07-31 15:47:20 UTC</p>
 
-            <div class="chart-card">
-                <h3>Ds4Sd</h3>
-                <p>Membership trends and statistics for the Ds4Sd GitHub organization.</p>
+        <div class="stats">
+            <strong>Tracking 78 owned GitHub organizations</strong>
+            (discovered daily from your GitHub owner memberships).
+        </div>
+
+        <div class="featured-chart">
+            <h3>Combined Overview</h3>
+            <p>Top organizations by membership, plus the remaining set.</p>
+            <a href="combined_members_trend.html">View Combined Chart →</a>
+        </div>
+        <div class="featured-chart">
+            <h3>Current Membership Ranking</h3>
+            <p>Horizontal ranking of current member counts across all tracked orgs.</p>
+            <a href="summary_statistics.html">View Ranking →</a>
+        </div>
+
+        <h2>Individual Organization Charts</h2>
+        <input class="filter" id="org-filter" type="search"
+               placeholder="Filter organizations…" autocomplete="off">
+        <div class="chart-grid" id="chart-grid">
+            
+            <div class="chart-card" data-org="adorchestrator">
+                <h3>adorchestrator</h3>
+                <p>Membership trend for <code>adorchestrator</code>.</p>
+                <a href="adorchestrator_members_trend.html">View Chart →</a>
+            </div>
+            <div class="chart-card" data-org="agile-crypto">
+                <h3>agile-crypto</h3>
+                <p>Membership trend for <code>agile-crypto</code>.</p>
+                <a href="agile-crypto_members_trend.html">View Chart →</a>
+            </div>
+            <div class="chart-card" data-org="ai4quantum">
+                <h3>AI4quantum</h3>
+                <p>Membership trend for <code>AI4quantum</code>.</p>
+                <a href="ai4quantum_members_trend.html">View Chart →</a>
+            </div>
+            <div class="chart-card" data-org="application-stacks">
+                <h3>application-stacks</h3>
+                <p>Membership trend for <code>application-stacks</code>.</p>
+                <a href="application-stacks_members_trend.html">View Chart →</a>
+            </div>
+            <div class="chart-card" data-org="bamoe">
+                <h3>bamoe</h3>
+                <p>Membership trend for <code>bamoe</code>.</p>
+                <a href="bamoe_members_trend.html">View Chart →</a>
+            </div>
+            <div class="chart-card" data-org="bee-travels">
+                <h3>bee-travels</h3>
+                <p>Membership trend for <code>bee-travels</code>.</p>
+                <a href="bee-travels_members_trend.html">View Chart →</a>
+            </div>
+            <div class="chart-card" data-org="biomedsciai">
+                <h3>BiomedSciAI</h3>
+                <p>Membership trend for <code>BiomedSciAI</code>.</p>
+                <a href="biomedsciai_members_trend.html">View Chart →</a>
+            </div>
+            <div class="chart-card" data-org="cicsdev">
+                <h3>cicsdev</h3>
+                <p>Membership trend for <code>cicsdev</code>.</p>
+                <a href="cicsdev_members_trend.html">View Chart →</a>
+            </div>
+            <div class="chart-card" data-org="cloud-native-toolkit">
+                <h3>cloud-native-toolkit</h3>
+                <p>Membership trend for <code>cloud-native-toolkit</code>.</p>
+                <a href="cloud-native-toolkit_members_trend.html">View Chart →</a>
+            </div>
+            <div class="chart-card" data-org="cloud-pak-gitops">
+                <h3>cloud-pak-gitops</h3>
+                <p>Membership trend for <code>cloud-pak-gitops</code>.</p>
+                <a href="cloud-pak-gitops_members_trend.html">View Chart →</a>
+            </div>
+            <div class="chart-card" data-org="cohdi">
+                <h3>CoHDI</h3>
+                <p>Membership trend for <code>CoHDI</code>.</p>
+                <a href="cohdi_members_trend.html">View Chart →</a>
+            </div>
+            <div class="chart-card" data-org="data-prep-kit">
+                <h3>data-prep-kit</h3>
+                <p>Membership trend for <code>data-prep-kit</code>.</p>
+                <a href="data-prep-kit_members_trend.html">View Chart →</a>
+            </div>
+            <div class="chart-card" data-org="decisionsdev">
+                <h3>DecisionsDev</h3>
+                <p>Membership trend for <code>DecisionsDev</code>.</p>
+                <a href="decisionsdev_members_trend.html">View Chart →</a>
+            </div>
+            <div class="chart-card" data-org="ds4sd">
+                <h3>DS4SD</h3>
+                <p>Membership trend for <code>DS4SD</code>.</p>
                 <a href="ds4sd_members_trend.html">View Chart →</a>
             </div>
-
-            <div class="chart-card">
-                <h3>Ibm-Aiu</h3>
-                <p>Membership trends and statistics for the Ibm-Aiu GitHub organization.</p>
+            <div class="chart-card" data-org="exgentic">
+                <h3>Exgentic</h3>
+                <p>Membership trend for <code>Exgentic</code>.</p>
+                <a href="exgentic_members_trend.html">View Chart →</a>
+            </div>
+            <div class="chart-card" data-org="fmperf-project">
+                <h3>fmperf-project</h3>
+                <p>Membership trend for <code>fmperf-project</code>.</p>
+                <a href="fmperf-project_members_trend.html">View Chart →</a>
+            </div>
+            <div class="chart-card" data-org="foundation-model-stack">
+                <h3>foundation-model-stack</h3>
+                <p>Membership trend for <code>foundation-model-stack</code>.</p>
+                <a href="foundation-model-stack_members_trend.html">View Chart →</a>
+            </div>
+            <div class="chart-card" data-org="generative-computing">
+                <h3>generative-computing</h3>
+                <p>Membership trend for <code>generative-computing</code>.</p>
+                <a href="generative-computing_members_trend.html">View Chart →</a>
+            </div>
+            <div class="chart-card" data-org="gori-project">
+                <h3>gori-project</h3>
+                <p>Membership trend for <code>gori-project</code>.</p>
+                <a href="gori-project_members_trend.html">View Chart →</a>
+            </div>
+            <div class="chart-card" data-org="hakkoda">
+                <h3>hakkoda</h3>
+                <p>Membership trend for <code>hakkoda</code>.</p>
+                <a href="hakkoda_members_trend.html">View Chart →</a>
+            </div>
+            <div class="chart-card" data-org="i-am-bee">
+                <h3>i-am-bee</h3>
+                <p>Membership trend for <code>i-am-bee</code>.</p>
+                <a href="i-am-bee_members_trend.html">View Chart →</a>
+            </div>
+            <div class="chart-card" data-org="ibm-aiu">
+                <h3>ibm-aiu</h3>
+                <p>Membership trend for <code>ibm-aiu</code>.</p>
                 <a href="ibm-aiu_members_trend.html">View Chart →</a>
             </div>
-
-            <div class="chart-card">
-                <h3>Ibm-Cloud</h3>
-                <p>Membership trends and statistics for the Ibm-Cloud GitHub organization.</p>
+            <div class="chart-card" data-org="ibm-apiconnect">
+                <h3>ibm-apiconnect</h3>
+                <p>Membership trend for <code>ibm-apiconnect</code>.</p>
+                <a href="ibm-apiconnect_members_trend.html">View Chart →</a>
+            </div>
+            <div class="chart-card" data-org="ibm-avocados">
+                <h3>ibm-avocados</h3>
+                <p>Membership trend for <code>ibm-avocados</code>.</p>
+                <a href="ibm-avocados_members_trend.html">View Chart →</a>
+            </div>
+            <div class="chart-card" data-org="ibm-aws">
+                <h3>ibm-aws</h3>
+                <p>Membership trend for <code>ibm-aws</code>.</p>
+                <a href="ibm-aws_members_trend.html">View Chart →</a>
+            </div>
+            <div class="chart-card" data-org="ibm-blockchain">
+                <h3>IBM-Blockchain</h3>
+                <p>Membership trend for <code>IBM-Blockchain</code>.</p>
+                <a href="ibm-blockchain_members_trend.html">View Chart →</a>
+            </div>
+            <div class="chart-card" data-org="ibm-build-lab">
+                <h3>ibm-build-lab</h3>
+                <p>Membership trend for <code>ibm-build-lab</code>.</p>
+                <a href="ibm-build-lab_members_trend.html">View Chart →</a>
+            </div>
+            <div class="chart-card" data-org="ibm-client-engineering">
+                <h3>ibm-client-engineering</h3>
+                <p>Membership trend for <code>ibm-client-engineering</code>.</p>
+                <a href="ibm-client-engineering_members_trend.html">View Chart →</a>
+            </div>
+            <div class="chart-card" data-org="ibm-cloud-architecture">
+                <h3>ibm-cloud-architecture</h3>
+                <p>Membership trend for <code>ibm-cloud-architecture</code>.</p>
+                <a href="ibm-cloud-architecture_members_trend.html">View Chart →</a>
+            </div>
+            <div class="chart-card" data-org="ibm-cloud-docs">
+                <h3>ibm-cloud-docs</h3>
+                <p>Membership trend for <code>ibm-cloud-docs</code>.</p>
+                <a href="ibm-cloud-docs_members_trend.html">View Chart →</a>
+            </div>
+            <div class="chart-card" data-org="ibm-cloud-vmware">
+                <h3>ibm-cloud-vmware</h3>
+                <p>Membership trend for <code>ibm-cloud-vmware</code>.</p>
+                <a href="ibm-cloud-vmware_members_trend.html">View Chart →</a>
+            </div>
+            <div class="chart-card" data-org="ibm-cloud">
+                <h3>IBM-Cloud</h3>
+                <p>Membership trend for <code>IBM-Cloud</code>.</p>
                 <a href="ibm-cloud_members_trend.html">View Chart →</a>
             </div>
-
-            <div class="chart-card">
-                <h3>Ibm-Granite-Community</h3>
-                <p>Membership trends and statistics for the Ibm-Granite-Community GitHub organization.</p>
+            <div class="chart-card" data-org="ibm-ecm">
+                <h3>ibm-ecm</h3>
+                <p>Membership trend for <code>ibm-ecm</code>.</p>
+                <a href="ibm-ecm_members_trend.html">View Chart →</a>
+            </div>
+            <div class="chart-card" data-org="ibm-eon">
+                <h3>IBM-EON</h3>
+                <p>Membership trend for <code>IBM-EON</code>.</p>
+                <a href="ibm-eon_members_trend.html">View Chart →</a>
+            </div>
+            <div class="chart-card" data-org="ibm-functions">
+                <h3>ibm-functions</h3>
+                <p>Membership trend for <code>ibm-functions</code>.</p>
+                <a href="ibm-functions_members_trend.html">View Chart →</a>
+            </div>
+            <div class="chart-card" data-org="ibm-granite-community">
+                <h3>ibm-granite-community</h3>
+                <p>Membership trend for <code>ibm-granite-community</code>.</p>
                 <a href="ibm-granite-community_members_trend.html">View Chart →</a>
             </div>
-
-            <div class="chart-card">
-                <h3>Ibm-Granite</h3>
-                <p>Membership trends and statistics for the Ibm-Granite GitHub organization.</p>
-                <a href="ibm-granite_members_trend.html">View Chart →</a>
+            <div class="chart-card" data-org="ibm-hyper-protect">
+                <h3>ibm-hyper-protect</h3>
+                <p>Membership trend for <code>ibm-hyper-protect</code>.</p>
+                <a href="ibm-hyper-protect_members_trend.html">View Chart →</a>
             </div>
-
-            <div class="chart-card">
-                <h3>Ibm</h3>
-                <p>Membership trends and statistics for the Ibm GitHub organization.</p>
+            <div class="chart-card" data-org="ibm-messaging">
+                <h3>ibm-messaging</h3>
+                <p>Membership trend for <code>ibm-messaging</code>.</p>
+                <a href="ibm-messaging_members_trend.html">View Chart →</a>
+            </div>
+            <div class="chart-card" data-org="ibm-mulesoft">
+                <h3>ibm-mulesoft</h3>
+                <p>Membership trend for <code>ibm-mulesoft</code>.</p>
+                <a href="ibm-mulesoft_members_trend.html">View Chart →</a>
+            </div>
+            <div class="chart-card" data-org="ibm-observability">
+                <h3>ibm-observability</h3>
+                <p>Membership trend for <code>ibm-observability</code>.</p>
+                <a href="ibm-observability_members_trend.html">View Chart →</a>
+            </div>
+            <div class="chart-card" data-org="ibm-research">
+                <h3>ibm-research</h3>
+                <p>Membership trend for <code>ibm-research</code>.</p>
+                <a href="ibm-research_members_trend.html">View Chart →</a>
+            </div>
+            <div class="chart-card" data-org="ibm-rh-circle-of-trust">
+                <h3>ibm-rh-circle-of-trust</h3>
+                <p>Membership trend for <code>ibm-rh-circle-of-trust</code>.</p>
+                <a href="ibm-rh-circle-of-trust_members_trend.html">View Chart →</a>
+            </div>
+            <div class="chart-card" data-org="ibm-s390-cloud">
+                <h3>ibm-s390-cloud</h3>
+                <p>Membership trend for <code>ibm-s390-cloud</code>.</p>
+                <a href="ibm-s390-cloud_members_trend.html">View Chart →</a>
+            </div>
+            <div class="chart-card" data-org="ibm-s390-linux">
+                <h3>ibm-s390-linux</h3>
+                <p>Membership trend for <code>ibm-s390-linux</code>.</p>
+                <a href="ibm-s390-linux_members_trend.html">View Chart →</a>
+            </div>
+            <div class="chart-card" data-org="ibm-security-intelligence">
+                <h3>ibm-security-intelligence</h3>
+                <p>Membership trend for <code>ibm-security-intelligence</code>.</p>
+                <a href="ibm-security-intelligence_members_trend.html">View Chart →</a>
+            </div>
+            <div class="chart-card" data-org="ibm-security-verify">
+                <h3>ibm-security-verify</h3>
+                <p>Membership trend for <code>ibm-security-verify</code>.</p>
+                <a href="ibm-security-verify_members_trend.html">View Chart →</a>
+            </div>
+            <div class="chart-card" data-org="ibm-security">
+                <h3>IBM-Security</h3>
+                <p>Membership trend for <code>IBM-Security</code>.</p>
+                <a href="ibm-security_members_trend.html">View Chart →</a>
+            </div>
+            <div class="chart-card" data-org="ibm-skillsbuild">
+                <h3>ibm-skillsbuild</h3>
+                <p>Membership trend for <code>ibm-skillsbuild</code>.</p>
+                <a href="ibm-skillsbuild_members_trend.html">View Chart →</a>
+            </div>
+            <div class="chart-card" data-org="ibm-terraform-power">
+                <h3>ibm-terraform-power</h3>
+                <p>Membership trend for <code>ibm-terraform-power</code>.</p>
+                <a href="ibm-terraform-power_members_trend.html">View Chart →</a>
+            </div>
+            <div class="chart-card" data-org="ibm-verify">
+                <h3>ibm-verify</h3>
+                <p>Membership trend for <code>ibm-verify</code>.</p>
+                <a href="ibm-verify_members_trend.html">View Chart →</a>
+            </div>
+            <div class="chart-card" data-org="ibm-wm-transition">
+                <h3>ibm-wm-transition</h3>
+                <p>Membership trend for <code>ibm-wm-transition</code>.</p>
+                <a href="ibm-wm-transition_members_trend.html">View Chart →</a>
+            </div>
+            <div class="chart-card" data-org="ibm">
+                <h3>IBM</h3>
+                <p>Membership trend for <code>IBM</code>.</p>
                 <a href="ibm_members_trend.html">View Chart →</a>
             </div>
-
-            <div class="chart-card">
-                <h3>Index.Html</h3>
-                <p>Membership trends and statistics for the Index.Html GitHub organization.</p>
-                <a href="index.html">View Chart →</a>
+            <div class="chart-card" data-org="ibmaot">
+                <h3>ibmaot</h3>
+                <p>Membership trend for <code>ibmaot</code>.</p>
+                <a href="ibmaot_members_trend.html">View Chart →</a>
             </div>
-
+            <div class="chart-card" data-org="ibmbpm">
+                <h3>ibmbpm</h3>
+                <p>Membership trend for <code>ibmbpm</code>.</p>
+                <a href="ibmbpm_members_trend.html">View Chart →</a>
+            </div>
+            <div class="chart-card" data-org="ibmdbanalytics">
+                <h3>ibmdbanalytics</h3>
+                <p>Membership trend for <code>ibmdbanalytics</code>.</p>
+                <a href="ibmdbanalytics_members_trend.html">View Chart →</a>
+            </div>
+            <div class="chart-card" data-org="ibmdevelopermea">
+                <h3>IBMDeveloperMEA</h3>
+                <p>Membership trend for <code>IBMDeveloperMEA</code>.</p>
+                <a href="ibmdevelopermea_members_trend.html">View Chart →</a>
+            </div>
+            <div class="chart-card" data-org="ibmspectrumcomputing">
+                <h3>IBMSpectrumComputing</h3>
+                <p>Membership trend for <code>IBMSpectrumComputing</code>.</p>
+                <a href="ibmspectrumcomputing_members_trend.html">View Chart →</a>
+            </div>
+            <div class="chart-card" data-org="ibmstorage">
+                <h3>ibmstorage</h3>
+                <p>Membership trend for <code>ibmstorage</code>.</p>
+                <a href="ibmstorage_members_trend.html">View Chart →</a>
+            </div>
+            <div class="chart-card" data-org="instana">
+                <h3>instana</h3>
+                <p>Membership trend for <code>instana</code>.</p>
+                <a href="instana_members_trend.html">View Chart →</a>
+            </div>
+            <div class="chart-card" data-org="itbench-hub">
+                <h3>itbench-hub</h3>
+                <p>Membership trend for <code>itbench-hub</code>.</p>
+                <a href="itbench-hub_members_trend.html">View Chart →</a>
+            </div>
+            <div class="chart-card" data-org="lakeviewer">
+                <h3>lakeviewer</h3>
+                <p>Membership trend for <code>lakeviewer</code>.</p>
+                <a href="lakeviewer_members_trend.html">View Chart →</a>
+            </div>
+            <div class="chart-card" data-org="lakevision-project">
+                <h3>lakevision-project</h3>
+                <p>Membership trend for <code>lakevision-project</code>.</p>
+                <a href="lakevision-project_members_trend.html">View Chart →</a>
+            </div>
+            <div class="chart-card" data-org="lineartapefilesystem">
+                <h3>LinearTapeFileSystem</h3>
+                <p>Membership trend for <code>LinearTapeFileSystem</code>.</p>
+                <a href="lineartapefilesystem_members_trend.html">View Chart →</a>
+            </div>
+            <div class="chart-card" data-org="linux-on-ibm-z">
+                <h3>linux-on-ibm-z</h3>
+                <p>Membership trend for <code>linux-on-ibm-z</code>.</p>
+                <a href="linux-on-ibm-z_members_trend.html">View Chart →</a>
+            </div>
+            <div class="chart-card" data-org="mapepire-ibmi">
+                <h3>Mapepire-IBMi</h3>
+                <p>Membership trend for <code>Mapepire-IBMi</code>.</p>
+                <a href="mapepire-ibmi_members_trend.html">View Chart →</a>
+            </div>
+            <div class="chart-card" data-org="microbitesapp">
+                <h3>microbitesapp</h3>
+                <p>Membership trend for <code>microbitesapp</code>.</p>
+                <a href="microbitesapp_members_trend.html">View Chart →</a>
+            </div>
+            <div class="chart-card" data-org="octoconsulting">
+                <h3>OctoConsulting</h3>
+                <p>Membership trend for <code>OctoConsulting</code>.</p>
+                <a href="octoconsulting_members_trend.html">View Chart →</a>
+            </div>
+            <div class="chart-card" data-org="odf-backup-restore">
+                <h3>ODF-Backup-Restore</h3>
+                <p>Membership trend for <code>ODF-Backup-Restore</code>.</p>
+                <a href="odf-backup-restore_members_trend.html">View Chart →</a>
+            </div>
+            <div class="chart-card" data-org="project-codeflare">
+                <h3>project-codeflare</h3>
+                <p>Membership trend for <code>project-codeflare</code>.</p>
+                <a href="project-codeflare_members_trend.html">View Chart →</a>
+            </div>
+            <div class="chart-card" data-org="rxn4chemistry">
+                <h3>rxn4chemistry</h3>
+                <p>Membership trend for <code>rxn4chemistry</code>.</p>
+                <a href="rxn4chemistry_members_trend.html">View Chart →</a>
+            </div>
+            <div class="chart-card" data-org="scarfbench">
+                <h3>scarfbench</h3>
+                <p>Membership trend for <code>scarfbench</code>.</p>
+                <a href="scarfbench_members_trend.html">View Chart →</a>
+            </div>
+            <div class="chart-card" data-org="st4sd">
+                <h3>st4sd</h3>
+                <p>Membership trend for <code>st4sd</code>.</p>
+                <a href="st4sd_members_trend.html">View Chart →</a>
+            </div>
+            <div class="chart-card" data-org="terraform-ibm-modules">
+                <h3>terraform-ibm-modules</h3>
+                <p>Membership trend for <code>terraform-ibm-modules</code>.</p>
+                <a href="terraform-ibm-modules_members_trend.html">View Chart →</a>
+            </div>
+            <div class="chart-card" data-org="terraform-ibm">
+                <h3>terraform-ibm</h3>
+                <p>Membership trend for <code>terraform-ibm</code>.</p>
+                <a href="terraform-ibm_members_trend.html">View Chart →</a>
+            </div>
+            <div class="chart-card" data-org="terrastackai">
+                <h3>terrastackai</h3>
+                <p>Membership trend for <code>terrastackai</code>.</p>
+                <a href="terrastackai_members_trend.html">View Chart →</a>
+            </div>
+            <div class="chart-card" data-org="wala">
+                <h3>wala</h3>
+                <p>Membership trend for <code>wala</code>.</p>
+                <a href="wala_members_trend.html">View Chart →</a>
+            </div>
+            <div class="chart-card" data-org="watson-developer-cloud">
+                <h3>watson-developer-cloud</h3>
+                <p>Membership trend for <code>watson-developer-cloud</code>.</p>
+                <a href="watson-developer-cloud_members_trend.html">View Chart →</a>
+            </div>
+            <div class="chart-card" data-org="zrlio">
+                <h3>zrlio</h3>
+                <p>Membership trend for <code>zrlio</code>.</p>
+                <a href="zrlio_members_trend.html">View Chart →</a>
+            </div>
         </div>
-        
+
         <div style="margin-top: 40px; padding-top: 20px; border-top: 1px solid #ddd; text-align: center; color: #666;">
-            <p>Generated automatically by <a href="https://github.com/jjasghar/github_ibm_members_tracking">IBM GitHub Members Tracking</a></p>
+            <p>Generated automatically by
+               <a href="https://github.com/jjasghar/github_ibm_members_tracking">IBM GitHub Members Tracking</a></p>
         </div>
     </div>
+    <script>
+      const input = document.getElementById('org-filter');
+      const cards = [...document.querySelectorAll('.chart-card')];
+      input.addEventListener('input', () => {
+        const q = input.value.trim().toLowerCase();
+        cards.forEach(card => {
+          card.classList.toggle('hidden', q && !card.dataset.org.includes(q));
+        });
+      });
+    </script>
 </body>
 </html>

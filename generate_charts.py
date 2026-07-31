@@ -1,289 +1,251 @@
 #!/usr/bin/env python3
 """
-IBM GitHub Members Tracking - Chart Generation
-
-This script generates individual and combined charts from the IBM stats CSV data.
-Creates visualizations showing membership trends over time for each organization.
+Generate individual and combined charts from IBM org member stats.
 """
 
-import pandas as pd
-import plotly.graph_objects as go
-import plotly.express as px
-from plotly.subplots import make_subplots
-import os
-from datetime import datetime
+from __future__ import annotations
 
-def ensure_charts_directory():
-    """Create charts directory if it doesn't exist."""
+import os
+from datetime import datetime, timezone
+
+import pandas as pd
+import plotly.express as px
+import plotly.graph_objects as go
+from plotly.subplots import make_subplots
+
+
+def ensure_charts_directory() -> str:
     charts_dir = "charts"
-    if not os.path.exists(charts_dir):
-        os.makedirs(charts_dir)
+    os.makedirs(charts_dir, exist_ok=True)
     return charts_dir
 
-def load_and_prepare_data(csv_file="ibm_stats.csv"):
-    """Load CSV data and prepare it for charting."""
+
+def load_and_prepare_data(csv_file: str = "ibm_stats.csv") -> pd.DataFrame | None:
     try:
-        # Read CSV with proper parsing
         df = pd.read_csv(csv_file)
-        
-        # Convert Date column to datetime
-        df['Date'] = pd.to_datetime(df['Date'])
-        
-        # Clean up column names (remove extra spaces)
         df.columns = df.columns.str.strip()
-        
-        # Sort by date to ensure proper chronological order
-        df = df.sort_values('Date')
-        
+
+        # Support legacy wide format during transition
+        if "Organization" not in df.columns:
+            value_vars = [c for c in df.columns if c != "Date"]
+            df = df.melt(
+                id_vars=["Date"],
+                value_vars=value_vars,
+                var_name="Organization",
+                value_name="Members",
+            )
+            df["Organization"] = df["Organization"].str.strip()
+            df = df[df["Organization"].str.lower() != "ibm-granite"]
+
+        df["Date"] = pd.to_datetime(df["Date"])
+        df["Organization"] = df["Organization"].astype(str).str.strip()
+        df["Members"] = pd.to_numeric(df["Members"], errors="coerce")
+        df = df.dropna(subset=["Members"])
+        df = df[df["Organization"].str.lower() != "ibm-granite"]
+        df = df.sort_values(["Organization", "Date"])
         return df
-    except Exception as e:
-        print(f"Error loading CSV data: {e}")
+    except Exception as exc:  # noqa: BLE001
+        print(f"Error loading CSV data: {exc}")
         return None
 
-def create_individual_charts(df, charts_dir):
-    """Create individual line charts for each organization."""
-    # Get organization columns (all except Date)
-    org_columns = [col for col in df.columns if col != 'Date']
-    
-    for org in org_columns:
-        # Convert values to numeric, handling any string formatting issues
-        values = pd.to_numeric(df[org], errors='coerce')
-        
-        # Create plotly figure
+
+def _safe_filename(org: str) -> str:
+    # Lowercase so charts are stable on case-insensitive filesystems (macOS).
+    return org.replace("/", "_").lower()
+
+
+def create_individual_charts(df: pd.DataFrame, charts_dir: str) -> None:
+    for org, org_df in df.groupby("Organization", sort=True):
         fig = go.Figure()
-        
-        fig.add_trace(go.Scatter(
-            x=df['Date'],
-            y=values,
-            mode='lines+markers',
-            name=org,
-            line=dict(width=3),
-            marker=dict(size=6)
-        ))
-        
-        fig.update_layout(
-            title=f'{org} GitHub Organization - Member Count Over Time',
-            xaxis_title='Date',
-            yaxis_title='Member Count',
-            hovermode='x unified',
-            template='plotly_white',
-            width=1200,
-            height=600
+        fig.add_trace(
+            go.Scatter(
+                x=org_df["Date"],
+                y=org_df["Members"],
+                mode="lines+markers",
+                name=org,
+                line=dict(width=3),
+                marker=dict(size=6),
+            )
         )
-        
-        # Add latest value annotation
-        if len(df) > 0:
-            latest_date = df['Date'].iloc[-1]
-            latest_value = values.iloc[-1]
+        fig.update_layout(
+            title=f"{org} GitHub Organization - Member Count Over Time",
+            xaxis_title="Date",
+            yaxis_title="Member Count",
+            hovermode="x unified",
+            template="plotly_white",
+            width=1200,
+            height=600,
+        )
+
+        if len(org_df) > 0:
+            latest = org_df.iloc[-1]
             fig.add_annotation(
-                x=latest_date,
-                y=latest_value,
-                text=f'{int(latest_value)}',
+                x=latest["Date"],
+                y=latest["Members"],
+                text=f'{int(latest["Members"])}',
                 showarrow=True,
                 arrowhead=2,
-                bgcolor='yellow',
-                bordercolor='black',
-                borderwidth=1
+                bgcolor="yellow",
+                bordercolor="black",
+                borderwidth=1,
             )
-        
-        # Save chart
-        chart_filename = f"{charts_dir}/{org}_members_trend.html"
-        fig.write_html(chart_filename)
-        
-        # Try to save as PNG if kaleido is available
-        try:
-            png_filename = f"{charts_dir}/{org}_members_trend.png"
-            fig.write_image(png_filename)
-            print(f"Generated chart: {chart_filename} and {png_filename}")
-        except Exception as e:
-            print(f"Generated HTML chart: {chart_filename} (PNG export failed: {e})")
 
-def create_combined_chart(df, charts_dir):
-    """Create a combined chart showing all organizations."""
-    # Get organization columns (all except Date)
-    org_columns = [col for col in df.columns if col != 'Date']
-    
-    # Create subplot layout
-    fig = make_subplots(
-        rows=2, cols=1,
-        subplot_titles=['All IBM GitHub Organizations - Member Count Over Time',
-                       'Smaller Organizations Detail (Excluding Main IBM)'],
-        vertical_spacing=0.1
+        base = f"{charts_dir}/{_safe_filename(org)}_members_trend"
+        fig.write_html(f"{base}.html")
+        print(f"Generated chart: {base}.html")
+
+
+def create_combined_chart(df: pd.DataFrame, charts_dir: str) -> None:
+    latest = (
+        df.sort_values("Date")
+        .groupby("Organization", as_index=False)
+        .tail(1)
+        .sort_values("Members", ascending=False)
     )
-    
-    # Top subplot: All organizations on same scale
-    for org in org_columns:
-        values = pd.to_numeric(df[org], errors='coerce')
+    top_orgs = set(latest.head(15)["Organization"])
+    top_df = df[df["Organization"].isin(top_orgs)]
+    rest_df = df[~df["Organization"].isin(top_orgs | {"IBM"})]
+
+    fig = make_subplots(
+        rows=2,
+        cols=1,
+        subplot_titles=[
+            "Top organizations by current membership",
+            "Remaining organizations (excluding IBM / top set)",
+        ],
+        vertical_spacing=0.12,
+    )
+
+    for org, org_df in top_df.groupby("Organization"):
         fig.add_trace(
             go.Scatter(
-                x=df['Date'],
-                y=values,
-                mode='lines+markers',
+                x=org_df["Date"],
+                y=org_df["Members"],
+                mode="lines",
                 name=org,
                 line=dict(width=2),
-                marker=dict(size=4),
-                showlegend=True
             ),
-            row=1, col=1
+            row=1,
+            col=1,
         )
-    
-    # Bottom subplot: Smaller organizations (exclude 'ibm' for better scale)
-    smaller_orgs = [org for org in org_columns if org != 'ibm']
-    
-    for org in smaller_orgs:
-        values = pd.to_numeric(df[org], errors='coerce')
+
+    for org, org_df in rest_df.groupby("Organization"):
         fig.add_trace(
             go.Scatter(
-                x=df['Date'],
-                y=values,
-                mode='lines+markers',
-                name=f"{org} (detail)",
-                line=dict(width=2),
-                marker=dict(size=4),
-                showlegend=True
+                x=org_df["Date"],
+                y=org_df["Members"],
+                mode="lines",
+                name=f"{org}",
+                line=dict(width=1),
+                opacity=0.7,
+                showlegend=False,
             ),
-            row=2, col=1
+            row=2,
+            col=1,
         )
-    
+
     fig.update_layout(
         height=1000,
         width=1400,
-        template='plotly_white',
-        hovermode='x unified'
+        template="plotly_white",
+        hovermode="x unified",
+        legend=dict(orientation="h", yanchor="bottom", y=1.02),
     )
-    
-    # Update axes labels
     fig.update_xaxes(title_text="Date", row=2, col=1)
     fig.update_yaxes(title_text="Member Count", row=1, col=1)
     fig.update_yaxes(title_text="Member Count", row=2, col=1)
-    
-    # Save combined chart
+
     html_filename = f"{charts_dir}/combined_members_trend.html"
     fig.write_html(html_filename)
-    
-    # Try to save as PNG if kaleido is available
     try:
-        png_filename = f"{charts_dir}/combined_members_trend.png"
-        fig.write_image(png_filename)
-        print(f"Generated combined chart: {html_filename} and {png_filename}")
-    except Exception as e:
-        print(f"Generated HTML combined chart: {html_filename} (PNG export failed: {e})")
+        fig.write_image(f"{charts_dir}/combined_members_trend.png")
+        print(f"Generated combined chart: {html_filename}")
+    except Exception as exc:  # noqa: BLE001
+        print(f"Generated HTML combined chart: {html_filename} (PNG failed: {exc})")
 
-def create_summary_stats_chart(df, charts_dir):
-    """Create a summary statistics chart."""
-    # Get organization columns (all except Date)
-    org_columns = [col for col in df.columns if col != 'Date']
-    
-    # Calculate summary statistics
-    summary_data = []
-    for org in org_columns:
-        values = pd.to_numeric(df[org], errors='coerce')
-        current_count = values.iloc[-1] if len(values) > 0 else 0
-        max_count = values.max() if len(values) > 0 else 0
-        min_count = values.min() if len(values) > 0 else 0
-        avg_count = values.mean() if len(values) > 0 else 0
-        
-        summary_data.append({
-            'Organization': org,
-            'Current': current_count,
-            'Maximum': max_count,
-            'Minimum': min_count,
-            'Average': avg_count
-        })
-    
-    summary_df = pd.DataFrame(summary_data)
-    
-    # Create grouped bar chart
-    fig = go.Figure()
-    
-    fig.add_trace(go.Bar(
-        name='Current',
-        x=summary_df['Organization'],
-        y=summary_df['Current'],
-        text=summary_df['Current'].round().astype(int),
-        textposition='auto'
-    ))
-    
-    fig.add_trace(go.Bar(
-        name='Maximum',
-        x=summary_df['Organization'],
-        y=summary_df['Maximum'],
-        text=summary_df['Maximum'].round().astype(int),
-        textposition='auto'
-    ))
-    
-    fig.add_trace(go.Bar(
-        name='Average',
-        x=summary_df['Organization'],
-        y=summary_df['Average'],
-        text=summary_df['Average'].round().astype(int),
-        textposition='auto'
-    ))
-    
-    fig.add_trace(go.Bar(
-        name='Minimum',
-        x=summary_df['Organization'],
-        y=summary_df['Minimum'],
-        text=summary_df['Minimum'].round().astype(int),
-        textposition='auto'
-    ))
-    
-    fig.update_layout(
-        title='IBM GitHub Organizations - Membership Statistics Summary',
-        xaxis_title='Organization',
-        yaxis_title='Member Count',
-        barmode='group',
-        template='plotly_white',
-        width=1400,
-        height=800
+
+def create_summary_stats_chart(df: pd.DataFrame, charts_dir: str) -> None:
+    latest = (
+        df.sort_values("Date")
+        .groupby("Organization", as_index=False)
+        .tail(1)
+        .sort_values("Members", ascending=False)
     )
-    
-    # Save summary chart
+
+    # Full interactive ranking (better than grouped bars for 70+ orgs)
+    fig = px.bar(
+        latest,
+        x="Members",
+        y="Organization",
+        orientation="h",
+        title="Current membership by organization",
+        text="Members",
+    )
+    fig.update_traces(textposition="outside")
+    fig.update_layout(
+        template="plotly_white",
+        height=max(800, 22 * len(latest)),
+        width=1100,
+        yaxis={"categoryorder": "total ascending"},
+        margin=dict(l=180),
+    )
+
     html_filename = f"{charts_dir}/summary_statistics.html"
     fig.write_html(html_filename)
-    
-    # Try to save as PNG if kaleido is available
     try:
-        png_filename = f"{charts_dir}/summary_statistics.png"
-        fig.write_image(png_filename)
-        print(f"Generated summary chart: {html_filename} and {png_filename}")
-    except Exception as e:
-        print(f"Generated HTML summary chart: {html_filename} (PNG export failed: {e})")
+        fig.write_image(f"{charts_dir}/summary_statistics.png", height=max(800, 22 * len(latest)))
+        print(f"Generated summary chart: {html_filename}")
+    except Exception as exc:  # noqa: BLE001
+        print(f"Generated HTML summary chart: {html_filename} (PNG failed: {exc})")
 
-def main():
-    """Main function to generate all charts."""
+
+def remove_stale_org_charts(df: pd.DataFrame, charts_dir: str) -> None:
+    keep = {_safe_filename(org) for org in df["Organization"].unique()}
+    keep |= {"combined", "summary", "index"}
+    for name in os.listdir(charts_dir):
+        if not (
+            name.endswith("_members_trend.html") or name.endswith("_members_trend.png")
+        ):
+            continue
+        org_part = name.replace("_members_trend.html", "").replace(
+            "_members_trend.png", ""
+        )
+        if org_part.lower() not in keep:
+            path = os.path.join(charts_dir, name)
+            os.remove(path)
+            print(f"Removed stale chart: {path}")
+
+
+def main() -> None:
     print("Starting chart generation...")
-    
-    # Ensure charts directory exists
     charts_dir = ensure_charts_directory()
-    
-    # Load data
     df = load_and_prepare_data()
-    if df is None:
+    if df is None or df.empty:
         print("Failed to load data. Exiting.")
         return
-    
-    print(f"Loaded data with {len(df)} rows and {len(df.columns)} columns")
-    print(f"Date range: {df['Date'].min()} to {df['Date'].max()}")
-    
-    # Generate individual charts
+
+    print(
+        f"Loaded {len(df)} rows across {df['Organization'].nunique()} orgs "
+        f"({df['Date'].min().date()} → {df['Date'].max().date()})"
+    )
+
     print("\nGenerating individual organization charts...")
     create_individual_charts(df, charts_dir)
-    
-    # Generate combined chart
+
     print("\nGenerating combined chart...")
     create_combined_chart(df, charts_dir)
-    
-    # Generate summary statistics chart
+
     print("\nGenerating summary statistics chart...")
     create_summary_stats_chart(df, charts_dir)
-    
-    print(f"\nChart generation complete! Charts saved in '{charts_dir}/' directory")
-    
-    # Generate index file
+
+    remove_stale_org_charts(df, charts_dir)
+
     print("\nGenerating index file...")
     from create_index import create_index_html
-    create_index_html()
+
+    create_index_html(org_count=df["Organization"].nunique())
+    print(f"\nChart generation complete at {datetime.now(timezone.utc).isoformat()}")
+
 
 if __name__ == "__main__":
     main()
